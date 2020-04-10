@@ -1,5 +1,6 @@
 <?php
 class Shortener {
+  public $appName = 'URL Shortener';
   private $dbFile = '/config/shortener.db';
   private $dbConn;
   private $allowsHashChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -94,8 +95,10 @@ CREATE TABLE IF NOT EXISTS `urls` (
 CREATE TABLE IF NOT EXISTS `resolves` (
   `resolve_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `date` INTEGER DEFAULT (STRFTIME('%s', 'now')),
-  `url_id` INTEGER NOT NULL
+  `url_id` INTEGER NOT NULL,
+  `remote_addr` INTEGER
 );
+CREATE INDEX `idx_resolves_url_id_date` ON `resolves` (`url_id`, `date`);
 CREATE TABLE IF NOT EXISTS `apps` (
   `app_id` INTEGER PRIMARY KEY AUTOINCREMENT,
   `name` TEXT NOT NULL,
@@ -212,6 +215,10 @@ EOQ;
     $type = $this->dbConn->escapeString($type);
     $value = $this->dbConn->escapeString($value);
     switch ($type) {
+      case 'checksum':
+      case 'hash':
+        $column = 'url_id';
+        $table = 'urls';
       case 'token':
         $column = 'app_id';
         $table = 'apps';
@@ -598,10 +605,12 @@ AND (`end` IS NULL OR `end` > STRFTIME('%s', 'now', 'localtime'))
 AND NOT `disabled`;
 EOQ;
     if ($url = $this->dbConn->querySingle($query, true)) {
+      $url_id = $url['url_id'];
+      $remote_addr = ip2long(array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR']);
       $query = <<<EOQ
 INSERT
-INTO `resolves` (`url_id`)
-VALUES ({$url['url_id']})
+INTO `resolves` (`url_id`, `remote_addr`)
+VALUES ('{$url_id}', '{$remote_addr}')
 EOQ;
       if ($this->dbConn->exec($query)) {
         return $url['url'];
