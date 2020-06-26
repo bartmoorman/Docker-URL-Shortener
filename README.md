@@ -3,11 +3,13 @@
 docker run \
 --detach \
 --name memcached \
+--restart unless-stopped \
 memcached:latest
 
 docker run \
 --detach \
 --name url-shortener \
+--restart unless-stopped \
 --link memcached \
 --publish 1816:1816 \
 --volume url-shortener-config:/config \
@@ -21,10 +23,12 @@ services:
   memcached:
     image: memcached:latest
     container_name: memcached
+    restart: unless-stopped
 
    url-shortener:
     image: bmoorman/url-shortener:latest
     container_name: url-shortener
+    restart: unless-stopped
     depends_on:
       - memcached
     ports:
@@ -37,10 +41,12 @@ volumes:
 ```
 
 ### Environment Variables
-* **TZ** Sets the timezone. Default `America/Denver`.
-* **HTTPD_SERVERNAME** Sets the vhost servername. Default `localhost`.
-* **HTTPD_PORT** Sets the vhost port. Default `1816`.
-* **HTTPD_SSL** Set to anything other than `SSL` (e.g. `NO_SSL`) to disable SSL. Default `SSL`.
-* **HTTPD_REDIRECT** Set to anything other than `REDIRECT` (e.g. `NO_REDIRECT`) to disable SSL redirect. Default `REDIRECT`.
-* **MEMCACHED_HOST** Sets the Memcached host. Default `memcached`.
-* **MEMCACHED_PORT** Sets the Memcached port. Default `11211`.
+|Variable|Description|Default|
+|--------|-----------|-------|
+|TZ|Sets the timezone|`America/Denver`|
+|HTTPD_SERVERNAME|Sets the vhost servername|`localhost`|
+|HTTPD_PORT|Sets the vhost port|`1816`|
+|HTTPD_SSL|Set to anything other than `SSL` (e.g. `NO_SSL`) to disable SSL|`SSL`|
+|HTTPD_REDIRECT|Set to anything other than `REDIRECT` (e.g. `NO_REDIRECT`) to disable SSL redirect|`REDIRECT`|
+|MEMCACHED_HOST|Sets the Memcached host|`memcached`|
+|MEMCACHED_PORT|Sets the Memcached port|`11211`|
