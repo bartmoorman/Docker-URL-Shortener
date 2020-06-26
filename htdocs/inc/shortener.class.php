@@ -1,10 +1,13 @@
 <?php
+date_default_timezone_set(getenv('TZ'));
+
 class Shortener {
   public $appName = 'URL Shortener';
   private $dbFile = '/config/shortener.db';
   private $dbConn;
   private $allowsHashChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   private $memcachedHost;
+  private $memcachedPort;
   public $memcachedConn;
   public $pageLimit = 20;
 
@@ -28,7 +31,8 @@ class Shortener {
       $this->initDb();
     }
 
-    $this->memcachedHost = getenv('MEMCACHED_HOST');
+    $this->memcachedHost = getenv('MEMCACHED_HOST') ?: 'memcached';
+    $this->memcachedPort = getenv('MEMCACHED_PORT') ?: 11211;
     $this->connectMemcached();
 
     if ($this->isConfigured()) {
@@ -132,7 +136,7 @@ EOQ;
 
   private function connectMemcached() {
     if ($this->memcachedConn = new Memcached()) {
-      $this->memcachedConn->addServer($this->memcachedHost, 11211);
+      $this->memcachedConn->addServer($this->memcachedHost, $this->memcachedPort);
       return true;
     }
     return false;

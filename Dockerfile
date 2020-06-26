@@ -1,10 +1,9 @@
 FROM bmoorman/ubuntu:bionic
 
-ENV HTTPD_SERVERNAME="localhost" \
-    HTTPD_PORT="1816" \
-    MEMCACHED_HOST="memcached"
+ARG DEBIAN_FRONTEND=noninteractive
 
-ARG DEBIAN_FRONTEND="noninteractive"
+ENV HTTPD_SERVERNAME=localhost \
+    HTTPD_PORT=1816
 
 RUN echo 'deb http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main' > /etc/apt/sources.list.d/certbot.list \
  && echo 'deb-src http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main' >> /etc/apt/sources.list.d/certbot.list \
