@@ -1,22 +1,20 @@
-FROM bmoorman/ubuntu:bionic
+FROM bmoorman/ubuntu:focal
 
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV HTTPD_SERVERNAME=localhost \
     HTTPD_PORT=1816
 
-RUN echo 'deb http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main' > /etc/apt/sources.list.d/certbot.list \
- && echo 'deb-src http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main' >> /etc/apt/sources.list.d/certbot.list \
- && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8C47BE8E75BCA694 \
- && apt-get update \
+RUN apt-get update \
  && apt-get install --yes --no-install-recommends \
     apache2 \
-    certbot \
     curl \
     libapache2-mod-php \
     php-memcached \
+    php-redis \
     php-sqlite3 \
     ssl-cert \
+    wget \
  && a2enmod \
     remoteip \
     rewrite \
@@ -24,6 +22,8 @@ RUN echo 'deb http://ppa.launchpad.net/certbot/certbot/ubuntu bionic main' > /et
  && sed --in-place --regexp-extended \
     --expression 's/^(Include\s+ports\.conf)$/#\1/' \
     /etc/apache2/apache2.conf \
+ && wget --quiet --directory-prefix /usr/local/bin "https://dl.eff.org/certbot-auto" \
+ && chmod +x /usr/local/bin/certbot-auto \
  && apt-get autoremove --yes --purge \
  && apt-get clean \
  && rm --recursive --force /var/lib/apt/lists/* /tmp/* /var/tmp/*
