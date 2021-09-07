@@ -13,6 +13,7 @@ RUN apt-get update \
     php-memcached \
     php-redis \
     php-sqlite3 \
+    sqlite3 \
     ssl-cert \
  && a2enmod \
     remoteip \
